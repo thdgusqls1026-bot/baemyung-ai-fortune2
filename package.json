@@ -1,0 +1,12 @@
+{
+  "name": "baemyung-ai-fortune",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "배명고등학교 AI연구반 영수증사진 운세 (Claude Haiku 5.5)",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.mjs",
+    "test": "node --test test/*.test.mjs"
+  }
+}

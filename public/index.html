@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#161324">
+  <meta name="description" content="배명고등학교 AI연구반 학교 축제, 영수증 사진 한 장으로 뽑는 오늘의 럭키 모먼트 (재미용 AI 운세)">
+  <title>AI 운세 영수증 · 배명고 AI연구반</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div class="masthead"><span class="logo-mark">✳</span><span>배명고등학교 <strong>AI연구반</strong></span><span class="festival-chip">FESTIVAL EDITION</span></div>
+      <div class="sparkle sparkle-one">✦</div><div class="sparkle sparkle-two">✧</div>
+      <div class="eyebrow">✨ 사진 한 장이면 오늘의 운세 완성</div>
+      <h1>AI 운세<br><em>영수증</em></h1>
+      <p>영수증 사진 한 장 올리고<br>오늘의 럭키 모먼트 뽑아 보세요 🍀</p>
+      <div class="hero-tags"><span>#영수증사진</span><span>#AI운세</span><span>#럭키모먼트</span></div>
+    </header>
+
+    <nav class="progress" aria-label="체험 진행 단계">
+      <div><b>01</b><span>사진 올리기</span></div><i aria-hidden="true"></i>
+      <div><b>02</b><span>운세 고르기</span></div><i aria-hidden="true"></i>
+      <div><b>03</b><span>결과 확인</span></div>
+    </nav>
+
+    <section class="panel" aria-labelledby="heading-upload">
+      <div class="step-label">STEP 01 <span>PHOTO</span></div>
+      <h2 id="heading-upload">📸 영수증 사진 올리기</h2>
+      <p class="description">출력된 영수증을 찰칵 찍거나, 앨범에서 골라 주세요.</p>
+      <div class="upload-target" id="uploadTarget">
+        <div class="upload-illustration" aria-hidden="true"><span class="receipt-icon">✦<br>▥<br>⌁</span></div>
+        <strong id="uploadTitle">오늘의 한 컷을 올려 주세요</strong>
+        <span id="uploadHelp">얼굴과 영수증이 또렷하게 보이면 더 좋아요 😊</span>
+        <div class="upload-buttons">
+          <label for="cameraInput" class="mini-button primary-mini"><span aria-hidden="true">📷</span> 바로 찍기</label>
+          <label for="galleryInput" class="mini-button secondary-mini"><span aria-hidden="true">🖼</span> 앨범에서 고르기</label>
+        </div>
+        <input id="cameraInput" type="file" accept="image/*" capture="environment" class="visually-hidden">
+        <input id="galleryInput" type="file" accept="image/*" class="visually-hidden">
+      </div>
+      <div id="previewArea" class="preview-area hidden">
+        <img id="photoPreview" alt="선택한 영수증사진 미리보기">
+        <p id="photoName" class="file-name"></p>
+        <button id="resetPhoto" class="text-button" type="button">다른 사진으로 바꾸기</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="heading-fortune">
+      <div class="step-label">STEP 02 <span>FORTUNE TYPE</span></div>
+      <h2 id="heading-fortune">🔮 오늘은 어떤 운세가 궁금하세요?</h2>
+      <p class="description">하나만 골라 주세요. 사진 속 분위기를 보고 AI가 센스 있게 뽑아 드려요 ✨</p>
+      <div class="fortune-options" role="group" aria-label="운세 종류">
+        <button class="fortune-option active" type="button" data-type="love" aria-pressed="true"><span class="fortune-emoji">💗</span><strong>연애운</strong><small>오늘의 설렘 포인트</small></button>
+        <button class="fortune-option" type="button" data-type="friend" aria-pressed="false"><span class="fortune-emoji">🫶</span><strong>친구 궁합</strong><small>우리 우정 케미</small></button>
+        <button class="fortune-option" type="button" data-type="luck" aria-pressed="false"><span class="fortune-emoji">🍀</span><strong>오늘의 행운</strong><small>럭키 모먼트</small></button>
+      </div>
+      <label class="consent">
+        <input type="checkbox" id="consentCheckbox">
+        <span>사진이 운세 생성 목적으로 Claude AI 서비스에 전송되는 것에 동의해요. 앱 서버는 사진을 저장하지 않아요. 이벤트 순위에는 창의성 점수와 확인 코드, 해시된 기기 식별값, 운세 종류, 제출 시각이 저장돼요. 이름·연락처는 받지 않아요.</span>
+      </label>
+      <button id="generateBtn" class="action-button" type="button" disabled><span>✦</span> 사진을 먼저 올려 주세요</button>
+      <p class="important-note">※ 사진만으로 사람의 성격이나 미래를 알 수 없어요. 결과는 오락용 콘텐츠예요.</p>
+      <p class="important-note">※ 창의성 점수(행운숫자)는 기기당 처음 1회만 이벤트 순위에 반영돼요. 다시 뽑기를 해도 점수는 바뀌지 않아요.</p>
+      <p class="error-message hidden" id="errorMessage" role="alert"></p>
+    </section>
+
+    <section id="resultSection" class="panel result-panel hidden" aria-labelledby="heading-result">
+      <div class="step-label">STEP 03 <span>YOUR RESULT</span></div>
+      <h2 id="heading-result">💌 운세가 도착했어요!</h2>
+      <div class="receipt" id="receiptCard">
+        <div class="receipt-heading"><span class="stars">✦ ✧ ✦</span><h3>AI FORTUNE RECEIPT</h3><span>배명고 AI연구반</span></div>
+        <div class="dashed"></div>
+        <div id="resultType" class="result-type">💗 연애운</div>
+        <div id="luckyBlock" class="lucky-block hidden">
+          <div id="luckyScore">
+            <div class="lucky-label">⭐ 오늘의 행운숫자 · 사진 창의성 점수</div>
+            <div class="lucky-number"><span id="luckyNumber"></span><small>점</small></div>
+            <div id="luckyCode" class="lucky-code"></div>
+          </div>
+          <div id="luckyNote" class="lucky-note"></div>
+        </div>
+        <div id="fortuneText" class="fortune-text"></div>
+        <div class="dashed"></div>
+        <div class="receipt-ending">오늘 하루도 응원할게요! <span>♡</span></div>
+        <div class="receipt-disclaimer">재미로 보는 AI 운세 · 실제 예측이 아닙니다.</div>
+      </div>
+      <div class="result-actions"><button id="againBtn" type="button" class="outline-button">↻ 다시 뽑기</button><button id="shareBtn" type="button" class="outline-button">↗ 결과 공유하기</button></div>
+    </section>
+
+    <footer><strong>배명고등학교 AI연구반</strong><span>2026 SCHOOL FESTIVAL</span><small>별도의 영수증 소지자 인증은 하지 않습니다.<br>타인의 얼굴 사진은 동의 없이 올리지 마세요.</small></footer>
+  </main>
+</body>
+</html>
