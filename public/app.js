@@ -42,42 +42,70 @@
     $('luckyBlock').classList.remove('hidden');
   }
 
-  const FIELD = {'제목':'title','운세':'body','행운의 아이템':'item','행운 포인트':'item','오늘의 미션':'mission'};
-  const FIELD_LINE = /^(제목|운세|행운의 아이템|행운 포인트|오늘의 미션)\s*[:：]\s*(.*)$/;
-  const LEADING_EMOJI = /^(\p{Extended_Pictographic}(?:️|‍\p{Extended_Pictographic})*)\s*(.*)$/u;
+  const FIELD = {'제목':'title','운세':'body'};
+  const FIELD_LINE = /^(제목|운세)\s*[:：]\s*(.*)$/;
+  const OMITTED_FIELD_LINE = /^(행운의 아이템|행운 포인트|오늘의 미션)\s*[:：]/;
   // Claude answers in labelled lines; only "운세" may continue over the following unlabelled lines.
   // Returns null when nothing usable was found, so the caller can fall back to the raw text.
   function parseFortune(text) {
-    const parsed = {title:'', body:[], itemEmoji:'🎁', itemText:'', mission:''};
+    const parsed = {title:'', body:[]};
     let field = null;
     for(const raw of String(text).split(/\r?\n/)) {
       const line = raw.trim();
       if(!line) continue;
+      if(OMITTED_FIELD_LINE.test(line)) {field='omitted'; continue;}
       const match = FIELD_LINE.exec(line);
       if(match) field = FIELD[match[1]];
       else if(field !== 'body') continue; // stray lines after one-line fields are dropped
       const value = match ? match[2] : line;
       if(!value) continue;
       if(field === 'body') parsed.body.push(value);
-      else if(field === 'item') {
-        const emoji = LEADING_EMOJI.exec(value);
-        if(emoji) {parsed.itemEmoji = emoji[1]; parsed.itemText = emoji[2];} else parsed.itemText = value;
-      } else parsed[field] = value;
+      else parsed[field] = value;
     }
     return parsed.title || parsed.body.length ? parsed : null;
+  }
+  function withoutRemovedFields(text) {
+    return String(text).split(/\r?\n/).filter(line => !OMITTED_FIELD_LINE.test(line.trim())).join('\n');
   }
   function renderFortune(parsed, rawText) {
     const box = $('fortuneText');
     box.replaceChildren();
-    if(!parsed) {box.textContent = rawText; return;}
+    if(!parsed) {box.textContent = withoutRemovedFields(rawText); return;}
     const add = (tag, className, text) => {
       const el = document.createElement(tag);
       el.className = className; el.textContent = text; box.append(el);
     };
     if(parsed.title) add('div','fortune-title',parsed.title);
     parsed.body.forEach(line => add('p','fortune-line',line));
-    if(parsed.itemText) add('div','fortune-pick',`${parsed.itemEmoji} 행운의 아이템: ${parsed.itemText}`);
-    if(parsed.mission) add('div','fortune-pick',`🎯 오늘의 미션: ${parsed.mission}`);
+  }
+  async function renderPublicRanking() {
+    const list = $('publicRanking');
+    list.replaceChildren();
+    try {
+      const response = await fetch('/api/ranking');
+      const payload = await response.json();
+      if(!response.ok) throw new Error('순위를 불러오지 못했어요.');
+      if(!payload.entries.length) {
+        const item = document.createElement('li');
+        item.textContent = '아직 순위 기록이 없어요.';
+        list.append(item);
+        return;
+      }
+      for(const entry of payload.entries) {
+        const item = document.createElement('li');
+        const rank = document.createElement('span');
+        rank.textContent = `${entry.rank}위`;
+        const score = document.createElement('span');
+        score.className = 'rank-score';
+        score.textContent = `${entry.score}점`;
+        item.append(rank,score);
+        list.append(item);
+      }
+    } catch {
+      const item = document.createElement('li');
+      item.textContent = '순위를 불러오지 못했어요.';
+      list.append(item);
+    }
   }
   // Plain-text version for sharing/copying; the confirmation code is deliberately left out.
   function buildShareText() {
@@ -85,11 +113,9 @@
     if(fortune) {
       if(fortune.title) lines.push(fortune.title, '');
       lines.push(...fortune.body);
-    } else lines.push(title[selectedType], '', resultText);
+    } else lines.push(title[selectedType], '', withoutRemovedFields(resultText));
     lines.push('');
     if(luckyNumber !== null) lines.push(`⭐ 오늘의 행운숫자: ${luckyNumber}점`);
-    if(fortune?.itemText) lines.push(`${fortune.itemEmoji} 행운의 아이템: ${fortune.itemText}`);
-    if(fortune?.mission) lines.push(`🎯 오늘의 미션: ${fortune.mission}`);
     lines.push('', '※ 재미용 운세입니다.');
     return lines.join('\n');
   }
@@ -179,6 +205,7 @@
       if(!response.ok) throw new Error(payload.error || 'AI 운세를 생성하지 못했어요.');
       resultText=payload.result;
       showLucky(payload);
+      await renderPublicRanking();
       $('resultType').textContent=title[selectedType];
       fortune=parseFortune(resultText);
       renderFortune(fortune,resultText);

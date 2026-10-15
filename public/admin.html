@@ -10,20 +10,10 @@
 </head>
 <body>
   <main class="shell wide">
-    <section class="panel" id="loginPanel">
-      <div class="step-label">ADMIN <span>RANKING</span></div>
-      <h2>행운숫자 순위 (운영자 전용)</h2>
-      <p class="description">운영자 비밀번호를 입력하면 창의성 점수 순위를 볼 수 있어요.</p>
-      <form id="loginForm" class="admin-form">
-        <input id="passwordInput" type="password" autocomplete="current-password" placeholder="운영자 비밀번호" required>
-        <button class="action-button" type="submit">순위 보기</button>
-      </form>
-      <p class="error-message hidden" id="adminError" role="alert"></p>
-    </section>
-
-    <section class="panel hidden" id="rankingPanel">
+    <section class="panel" id="rankingPanel">
       <div class="step-label">RANKING <span id="totalCount"></span></div>
       <h2>행운숫자 순위</h2>
+      <p class="admin-public-note">이 순위 페이지는 비밀번호 없이 열립니다. 확인 코드와 순위 정보도 사이트 주소를 아는 사람에게 공개됩니다.</p>
       <div id="storageWarn" class="admin-warn hidden"></div>
       <div class="admin-bar">
         <button id="refreshBtn" class="outline-button" type="button">↻ 새로고침</button>
@@ -36,7 +26,6 @@
         </table>
       </div>
       <p class="important-note">동점이면 아이디어 → 표현 → 구도 → 재미 점수 순, 그래도 같으면 먼저 제출한 순서로 순위를 정해요. 수상자는 확인 코드와 실물 영수증을 함께 확인해 주세요.</p>
-      <p class="important-note" id="networkInfo"></p>
       <p class="error-message hidden" id="rankingError" role="alert"></p>
     </section>
   </main>

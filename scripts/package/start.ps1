@@ -16,7 +16,6 @@ $node       = Join-Path $app 'node\node.exe'
 $envFile    = Join-Path $app '.env'
 $logDir     = Join-Path $app 'logs'
 $dataDir    = Join-Path $root '순위기록'
-$infoFile   = Join-Path $root '관리자 정보.txt'
 $keyPattern = '^sk-ant-[A-Za-z0-9_\-]{20,}$'
 $utf8NoBom  = New-Object Text.UTF8Encoding($false)
 $utf8Bom    = New-Object Text.UTF8Encoding($true)
@@ -61,10 +60,9 @@ function Test-ApiKey([string]$key) {
   }
 }
 
-# ---------- 처음 한 번: API 키 받기 + 관리자 비밀번호 만들기 ----------
+# ---------- 처음 한 번: API 키 받기 ----------
 $key = Get-EnvValue 'ANTHROPIC_API_KEY'
 $hasKey = $key -match $keyPattern
-$adminPw = Get-EnvValue 'ADMIN_PASSWORD'
 $needsWrite = $false
 
 if (-not $hasKey) {
@@ -108,22 +106,12 @@ if (-not $hasKey) {
   $needsWrite = $true
 }
 
-if ($adminPw.Length -lt 8) {
-  # 헷갈리는 글자(0/o, 1/l/i)를 뺀 12자리 무작위 비밀번호
-  $chars = 'abcdefghjkmnpqrstuvwxyz23456789'
-  $bytes = New-Object byte[] 12
-  [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
-  $adminPw = -join ($bytes | ForEach-Object { $chars[$_ % $chars.Length] })
-  $needsWrite = $true
-}
-
 if ($needsWrite -or -not (Test-Path $envFile)) {
   $lines = @(
     "ANTHROPIC_API_KEY=$key",
     "ANTHROPIC_MODEL=$(Get-EnvOr 'ANTHROPIC_MODEL' 'claude-haiku-5-5')",
     "DAILY_API_LIMIT=$(Get-EnvOr 'DAILY_API_LIMIT' '200')",
-    "IP_LIMIT_PER_15MIN=$(Get-EnvOr 'IP_LIMIT_PER_15MIN' '200')",
-    "ADMIN_PASSWORD=$adminPw"
+    "IP_LIMIT_PER_15MIN=$(Get-EnvOr 'IP_LIMIT_PER_15MIN' '200')"
   )
   [IO.File]::WriteAllText($envFile, (($lines -join "`r`n") + "`r`n"), $utf8NoBom) # BOM이 있으면 서버가 첫 줄을 못 읽어요
   Say ''
@@ -188,15 +176,6 @@ try {
     ForEach-Object { "http://$($_.IPv4Address.IPAddress):$port" })
 } catch {}
 
-$info = @(
-  '관리자 화면 (순위 보기)',
-  "  주소      : http://localhost:$port/admin",
-  "  비밀번호  : $adminPw",
-  '',
-  '※ 이 파일을 다른 사람에게 보여 주거나 보내지 마세요.'
-) -join "`r`n"
-[IO.File]::WriteAllText($infoFile, $info + "`r`n", $utf8Bom)
-
 Clear-Host
 Say '============================================================' 'Green'
 Say '  켜졌어요!  이 검은 창을 닫으면 꺼져요. (행사 중에는 닫지 마세요)' 'Green'
@@ -208,8 +187,8 @@ if ($phoneUrls.Count -gt 0) {
 } else {
   Say '  휴대폰에서 보기      : 와이파이에 연결되어 있지 않아서 주소를 찾지 못했어요' 'Yellow'
 }
-Say "  순위 보기 (관리자)   : http://localhost:$port/admin" 'White'
-Say '                         비밀번호는 「관리자 정보.txt」 파일에 있어요.' 'Gray'
+Say "  순위 보기            : http://localhost:$port/admin" 'White'
+Say '                         비밀번호 없이 열려요. 접속한 누구나 전체 순위를 볼 수 있어요.' 'Yellow'
 Say ''
 Say '  - 처음에 Windows 방화벽 창이 뜨면 [액세스 허용]을 눌러야 휴대폰에서 접속돼요.' 'Gray'
 Say '  - 끝낼 때는 순위 화면에서 [CSV 저장]으로 기록을 저장한 뒤 이 창을 닫으세요.' 'Gray'
